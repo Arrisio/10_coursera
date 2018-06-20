@@ -9,16 +9,18 @@ import argparse
 
 
 def get_list_of_n_cources_urls(
-    courses_list_url='https://www.coursera.org/sitemap~www~courses.xml',
+    url='https://www.coursera.org/sitemap~www~courses.xml',
     headers={
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; '
                       'rv:45.0) Gecko/20100101 Firefox/45.0'
     },
     number_cources=20
 ):
-    response = requests.get(courses_list_url, headers=headers)
+    response = requests.get(url, headers=headers)
     feed_soup = BeautifulSoup(response.text, 'lxml')
     courses_list = [xml_tag.get_text() for xml_tag in feed_soup.findAll('loc')]
+    # because there no random.choices in python3.5
+    # have to shaffle and take first n items for randomize
     shuffle(courses_list)
     return courses_list[:number_cources]
 
@@ -27,7 +29,7 @@ def parse_web_page(web_page, attr_mapping):
     feed_soup = BeautifulSoup(web_page, 'html.parser')
 
     parced_data = []
-    for attr_name, attr_params in attr_mapping.items():
+    for _, attr_params in attr_mapping.items():
         if not attr_params.get('type_'):
             param_value = feed_soup.find(class_=attr_params.get('class_'))
             if isinstance(param_value, bs4.element.Tag):
@@ -102,7 +104,7 @@ def parse_arguments():
         dest='filepath',
         type=path_to_save_file,
         help='filepath to save result file',
-        default='coursera.xmlx'
+        default='coursera.xlsx'
     )
 
     parser.add_argument(
