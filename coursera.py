@@ -10,13 +10,9 @@ import argparse
 
 def get_list_of_n_cources_urls(
     url='https://www.coursera.org/sitemap~www~courses.xml',
-    headers={
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; '
-                      'rv:45.0) Gecko/20100101 Firefox/45.0'
-    },
     number_cources=20
 ):
-    response = requests.get(url, headers=headers)
+    response = requests.get(url)
     feed_soup = BeautifulSoup(response.text, 'lxml')
     courses_list = [xml_tag.get_text() for xml_tag in feed_soup.findAll('loc')]
     # because there no random.choices in python3.5
@@ -49,10 +45,6 @@ def parse_web_page(web_page, attr_mapping):
 
 def combine_array_with_cources_data(
         cources_urls,
-        headers={
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; '
-                          'rv:45.0) Gecko/20100101 Firefox/45.0'
-        },
         cources_attr_mapping={
             'Name': {'class_': 'title display-3-text'},
             'Language': {'class_': 'rc-Language'},
@@ -65,7 +57,7 @@ def combine_array_with_cources_data(
     result_array = [[course_name for course_name in cources_attr_mapping]]
     for url in cources_urls:
 
-        response = requests.get(url, headers=headers, allow_redirects=True)
+        response = requests.get(url)
         if response.ok:
             response.encoding = 'utf-8'
             result_array.append(
