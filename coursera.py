@@ -44,16 +44,16 @@ def parse_web_page(web_page, attr_mapping):
 
 
 def combine_array_with_cources_data(
-        cources_urls,
-        cources_attr_mapping={
-            'Name': {'class_': 'title display-3-text'},
-            'Language': {'class_': 'rc-Language'},
-            'Nearest start date': {'class_': 'rc-StartDateString'},
-            'Raiting': {'class_': 'ratings-text'},
-            'Number of weeks': {'class_': 'week-heading',
-                                'type_': 'count_elements'}
-        }
+        cources_urls
 ):
+    cources_attr_mapping = {
+        'Name': {'class_': 'title display-3-text'},
+        'Language': {'class_': 'rc-Language'},
+        'Nearest start date': {'class_': 'rc-StartDateString'},
+        'Raiting': {'class_': 'ratings-text'},
+        'Number of weeks': {'class_': 'week-heading',
+                            'type_': 'count_elements'}
+    }
     result_array = [[course_name for course_name in cources_attr_mapping]]
     for url in cources_urls:
 
