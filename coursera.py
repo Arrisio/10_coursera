@@ -18,6 +18,7 @@ def get_list_of_n_cources_urls(
 ):
     response = requests.get(url, headers=headers)
     feed_soup = BeautifulSoup(response.text, 'lxml')
+    # to get rnadom N cources, shuffle list and get first-n items :
     courses_list = [xml_tag.get_text() for xml_tag in feed_soup.findAll('loc')]
     # because there no random.choices in python3.5
     # have to shaffle and take first n items for randomize
