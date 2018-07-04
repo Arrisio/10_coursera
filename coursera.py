@@ -2,26 +2,30 @@ from openpyxl import Workbook
 import requests
 from bs4 import BeautifulSoup
 import bs4
-from random import shuffle
+import random
 import string
 import os
 import argparse
 
 
-def get_list_of_n_cources_urls(
-    url='https://www.coursera.org/sitemap~www~courses.xml',
-    number_cources=20
+def get_list_of_cources_urls(
+        url='https://www.coursera.org/sitemap~www~courses.xml'
 ):
     response = requests.get(url)
     feed_soup = BeautifulSoup(response.text, 'lxml')
-    courses_list = [xml_tag.get_text() for xml_tag in feed_soup.findAll('loc')]
-    # because there no random.choices in python3.5
-    # have to shaffle and take first n items for randomize
-    shuffle(courses_list)
-    return courses_list[:number_cources]
+    return [xml_tag.get_text() for xml_tag in feed_soup.findAll('loc')]
 
 
-def parse_web_page(web_page, attr_mapping):
+def parse_web_page(web_page):
+    attr_mapping =  {
+        'Name': {'class_': 'title display-3-text'},
+        'Language': {'class_': 'rc-Language'},
+        'Nearest start date': {'class_': 'rc-StartDateString'},
+        'Raiting': {'class_': 'ratings-text'},
+        'Number of weeks': {'class_': 'week-heading',
+                            'type_': 'count_elements'}
+    }
+
     feed_soup = BeautifulSoup(web_page, 'html.parser')
 
     parced_data = []
@@ -43,17 +47,7 @@ def parse_web_page(web_page, attr_mapping):
     return parced_data
 
 
-def combine_array_with_cources_data(
-        cources_urls
-):
-    cources_attr_mapping = {
-        'Name': {'class_': 'title display-3-text'},
-        'Language': {'class_': 'rc-Language'},
-        'Nearest start date': {'class_': 'rc-StartDateString'},
-        'Raiting': {'class_': 'ratings-text'},
-        'Number of weeks': {'class_': 'week-heading',
-                            'type_': 'count_elements'}
-    }
+def combine_array_with_cources_data(cources_urls):
     result_array = [[course_name for course_name in cources_attr_mapping]]
     for url in cources_urls:
 
@@ -67,7 +61,7 @@ def combine_array_with_cources_data(
     return result_array
 
 
-def auto_set_width_excel_cols(worksheet, indent=4):
+def set_auto_width_excel_cols(worksheet, indent=4):
     for i, column in enumerate(worksheet.iter_cols()):
         worksheet.column_dimensions[
             string.ascii_uppercase[i]].width = indent + max(
@@ -75,14 +69,14 @@ def auto_set_width_excel_cols(worksheet, indent=4):
         )
 
 
-def array_to_excel_workbook(array):
+def make_excel_workbook_from_array(array):
     work_book = Workbook()
     work_sheet = work_book.active
 
     for row in array:
         work_sheet.append(row)
 
-    auto_set_width_excel_cols(work_sheet)
+    set_auto_width_excel_cols(work_sheet)
 
     return work_book
 
@@ -94,7 +88,7 @@ def parse_arguments():
         '-f',
         action='store',
         dest='filepath',
-        type=path_to_save_file,
+        type=validate_path_to_save_file,
         help='filepath to save result file',
         default='coursera.xlsx'
     )
@@ -111,7 +105,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def path_to_save_file(filepath):
+def validate_path_to_save_file(filepath):
     result_dir = os.path.split(filepath)[0]
     if result_dir and not os.path.isdir(result_dir):
         raise argparse.ArgumentTypeError('Invalid output path')
@@ -121,10 +115,13 @@ def path_to_save_file(filepath):
 if __name__ == '__main__':
     params = parse_arguments()
 
-    excel_workbook = array_to_excel_workbook(
-        combine_array_with_cources_data(
-            get_list_of_n_cources_urls(number_cources=params.cources_number)
-        )
+    rnd_cources_ulr_list = random.sample(
+        get_list_of_cources_urls(),
+        k=params.cources_number
+    )
+
+    excel_workbook = make_excel_workbook_from_array(
+        array=combine_array_with_cources_data(rnd_cources_ulr_list)
     )
 
     excel_workbook.save(params.filepath)
