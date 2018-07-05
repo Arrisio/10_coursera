@@ -19,25 +19,25 @@ def get_list_of_cources_urls(
 def parse_web_page(web_page, metadata):
     feed_soup = BeautifulSoup(web_page, 'html.parser')
 
-    data = {}
+    exctracted_data = {}
     for param_name, param_preperties in metadata.items():
         if not param_preperties.get('type_'):
             param_value = feed_soup.find(class_=param_preperties.get('class_'))
             if isinstance(param_value, bs4.element.Tag):
-                data[param_name] = param_value.get_text()
+                exctracted_data[param_name] = param_value.get_text()
             else:
-                data[param_name] = None
+                exctracted_data[param_name] = None
 
         elif param_preperties.get('type_') == 'count_elements':
             param_value = feed_soup.find_all(
                 class_=param_preperties.get('class_')
             )
             if isinstance(param_value, list):
-                data[param_name] = len(param_value)
+                exctracted_data[param_name] = len(param_value)
             else:
-                data[param_name] = None
+                exctracted_data[param_name] = None
 
-    return data
+    return exctracted_data
 
 
 def get_cource_web_page(url):
@@ -97,9 +97,9 @@ def make_excel_workbook_from_table(table):
 
 
 def make_table_from_data_dict(dict_):
-    '''input dictionary must contain key "data" where contains
+    """ Input dictionary must contain key "data" where contains
         a list of dictionaries with data. Also it could contain key "metadata"
-        and funtion tries to exctract column names from it'''
+        and funtion tries to exctract column names from it"""
 
     columns_names = (
             dict_.get('metadata', {}).get('attributes_names') or
