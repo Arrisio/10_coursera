@@ -16,7 +16,7 @@ def get_list_of_random_n_cources_urls(cources_urls_xml, n_cources=20):
     )
 
 
-def get_data_from_cource_web_page(web_page):
+def extract_data_from_cource_web_page(web_page):
 
     metadata = {
         'Name': {'class_': 'title display-3-text'},
@@ -123,7 +123,9 @@ if __name__ == '__main__':
 
     cources_table = [table_header]
     for url in random_cources_ulr_list:
-        cource_data = get_data_from_cource_web_page(web_page=get_web_page(url))
+        cource_data = extract_data_from_cource_web_page(
+            web_page=get_web_page(url)
+        )
         cources_table.append(
             [cource_data.get(param_name) for param_name in table_header]
             )
