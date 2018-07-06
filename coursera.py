@@ -8,12 +8,12 @@ import os
 import argparse
 
 
-def get_list_of_cources_urls(
-        url='https://www.coursera.org/sitemap~www~courses.xml'
-):
-    response = requests.get(url)
-    feed_soup = BeautifulSoup(response.text, 'lxml')
-    return [xml_tag.get_text() for xml_tag in feed_soup.findAll('loc')]
+def get_list_of_random_n_cources_urls(cources_urls_xml, n_cources=20):
+    feed_soup = BeautifulSoup(cources_urls_xml, 'lxml')
+    return random.sample(
+        [xml_tag.get_text() for xml_tag in feed_soup.findAll('loc')],
+        k=n_cources
+    )
 
 
 def parse_web_page(web_page, metadata):
@@ -47,35 +47,6 @@ def get_cource_web_page(url):
         return response.text
 
 
-def make_cources_data_dict(cources_urls):
-    cources_metadata = {
-        'Name': {'class_': 'title display-3-text', 'order': 0},
-        'Language': {'class_': 'rc-Language', 'order': 1},
-        'Nearest start date': {'class_': 'rc-StartDateString', 'order': 2},
-        'Raiting': {'class_': 'ratings-text', 'order': 3},
-        'Number of weeks': {'class_': 'week-heading',
-                            'type_': 'count_elements', 'order': 4
-                            }
-    }
-
-    cources_data = {
-        'metadata': {'attributes_names': sorted(
-                cources_metadata.keys(),
-                key=lambda key: cources_metadata.get(key).get('order', 100))
-        },
-        'data': []
-    }
-    for url in cources_urls:
-        cources_data['data'].append(
-            parse_web_page(
-                web_page=get_cource_web_page(url),
-                metadata=cources_metadata
-            )
-        )
-
-    return cources_data
-
-
 def set_auto_width_excel_cols(worksheet, indent=4):
     for i, column in enumerate(worksheet.iter_cols()):
         worksheet.column_dimensions[
@@ -94,26 +65,6 @@ def make_excel_workbook_from_table(table):
     set_auto_width_excel_cols(work_sheet)
 
     return work_book
-
-
-def make_table_from_data_dict(dict_):
-    """ Input dictionary must contain key "data" where contains
-        a list of dictionaries with data. Also it could contain key "metadata"
-        and funtion tries to exctract column names from it"""
-
-    columns_names = (
-            dict_.get('metadata', {}).get('attributes_names') or
-            list(dict_.get('data', [{}])[0].keys())
-    )
-    table = [dict_.get('metadata', {}).get('attributes_names')]
-
-    for record in dict_.get('data'):
-        row = []
-        for attribute_name in columns_names:
-            row.append(record.get(attribute_name))
-        table.append(row)
-
-    return table
 
 
 def parse_arguments():
@@ -150,15 +101,35 @@ def validate_path_to_save_file(filepath):
 if __name__ == '__main__':
     params = parse_arguments()
 
-    random_cources_ulr_list = random.sample(
-        get_list_of_cources_urls(),
-        k=params.cources_number
+    random_cources_ulr_list = get_list_of_random_n_cources_urls(
+        requests.get('https://www.coursera.org/sitemap~www~courses.xml').text,
+        n_cources=params.cources_number
     )
 
-    excel_workbook = make_excel_workbook_from_table(
-        table=make_table_from_data_dict(
-            make_cources_data_dict(random_cources_ulr_list)
+    cources_metadata = {
+        'Name': {'class_': 'title display-3-text', 'order': 0},
+        'Language': {'class_': 'rc-Language', 'order': 1},
+        'Nearest start date': {'class_': 'rc-StartDateString', 'order': 2},
+        'Raiting': {'class_': 'ratings-text', 'order': 3},
+        'Number of weeks': {'class_': 'week-heading',
+                            'type_': 'count_elements', 'order': 4
+                            }
+    }
+
+    table_header = [
+        'Name', 'Language', 'Nearest start date', 'Raiting', 'Number of weeks'
+    ]
+
+    cources_table = [table_header]
+    for url in random_cources_ulr_list:
+        table_row = []
+        cource_data = parse_web_page(
+            web_page=get_cource_web_page(url),
+            metadata=cources_metadata
         )
-    )
+        table_row.append(
+            cource_data.get(param_name) for param_name in table_header
+            )
 
+    excel_workbook = make_excel_workbook_from_table(cources_table)
     excel_workbook.save(params.filepath)
