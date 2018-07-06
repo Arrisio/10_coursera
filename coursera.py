@@ -127,8 +127,8 @@ if __name__ == '__main__':
             web_page=get_cource_web_page(url),
             metadata=cources_metadata
         )
-        table_row.append(
-            cource_data.get(param_name) for param_name in table_header
+        cources_table.append(
+            [cource_data.get(param_name) for param_name in table_header]
             )
 
     excel_workbook = make_excel_workbook_from_table(cources_table)
