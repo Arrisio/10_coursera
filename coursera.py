@@ -16,7 +16,18 @@ def get_list_of_random_n_cources_urls(cources_urls_xml, n_cources=20):
     )
 
 
-def parse_web_page(web_page, metadata):
+def get_data_from_cource_web_page(web_page):
+
+    metadata = {
+        'Name': {'class_': 'title display-3-text'},
+        'Language': {'class_': 'rc-Language'},
+        'Nearest start date': {'class_': 'rc-StartDateString'},
+        'Raiting': {'class_': 'ratings-text'},
+        'Number of weeks': {'class_': 'week-heading',
+                            'type_': 'count_elements'
+                            }
+    }
+
     feed_soup = BeautifulSoup(web_page, 'html.parser')
 
     exctracted_data = {}
@@ -40,7 +51,7 @@ def parse_web_page(web_page, metadata):
     return exctracted_data
 
 
-def get_cource_web_page(url):
+def get_web_page(url):
     response = requests.get(url)
     if response.ok:
         response.encoding = 'utf-8'
@@ -102,19 +113,9 @@ if __name__ == '__main__':
     params = parse_arguments()
 
     random_cources_ulr_list = get_list_of_random_n_cources_urls(
-        requests.get('https://www.coursera.org/sitemap~www~courses.xml').text,
+        get_web_page('https://www.coursera.org/sitemap~www~courses.xml'),
         n_cources=params.cources_number
     )
-
-    cources_metadata = {
-        'Name': {'class_': 'title display-3-text'},
-        'Language': {'class_': 'rc-Language'},
-        'Nearest start date': {'class_': 'rc-StartDateString'},
-        'Raiting': {'class_': 'ratings-text'},
-        'Number of weeks': {'class_': 'week-heading',
-                            'type_': 'count_elements'
-                            }
-    }
 
     table_header = [
         'Name', 'Language', 'Nearest start date', 'Raiting', 'Number of weeks'
@@ -122,11 +123,7 @@ if __name__ == '__main__':
 
     cources_table = [table_header]
     for url in random_cources_ulr_list:
-        table_row = []
-        cource_data = parse_web_page(
-            web_page=get_cource_web_page(url),
-            metadata=cources_metadata
-        )
+        cource_data = get_data_from_cource_web_page(web_page=get_web_page(url))
         cources_table.append(
             [cource_data.get(param_name) for param_name in table_header]
             )
