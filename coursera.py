@@ -107,12 +107,12 @@ if __name__ == '__main__':
     )
 
     cources_metadata = {
-        'Name': {'class_': 'title display-3-text', 'order': 0},
-        'Language': {'class_': 'rc-Language', 'order': 1},
-        'Nearest start date': {'class_': 'rc-StartDateString', 'order': 2},
-        'Raiting': {'class_': 'ratings-text', 'order': 3},
+        'Name': {'class_': 'title display-3-text'},
+        'Language': {'class_': 'rc-Language'},
+        'Nearest start date': {'class_': 'rc-StartDateString'},
+        'Raiting': {'class_': 'ratings-text'},
         'Number of weeks': {'class_': 'week-heading',
-                            'type_': 'count_elements', 'order': 4
+                            'type_': 'count_elements'
                             }
     }
 
